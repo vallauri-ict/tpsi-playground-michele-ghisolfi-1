@@ -2,7 +2,7 @@ import * as _http from "http"
 import * as _url from "url"
 import * as  _fs from "fs"
 import * as _mime from "mime"
-import * as querystring from "query-string"
+import * as _querystring from "query-string"
 let HEADERS = require("./headers.json")
 let paginaErrore : string;
 
@@ -36,52 +36,61 @@ class Dispatcher{
 
     dispatch(req, res) {
         let metodo = req.method.toUpperCase();
-        if (metodo = "GET") {
-            innerDispatch(req,res)
+        if (metodo == "GET") {
+            this.innerDispatch(req,res)
         } else {
             let parametriBody : string = ""
             req.on("data", function (data) {
                 parametriBody += data;
             })
             let parametriJSON = {}
+            let _this = this
             req.on("end", function () {
                 try {
                     // se i paramatri sono in formato json va a buon fine, altrimenti passo nel catch(url encoded)
                     parametriJSON = JSON.parse(parametriBody)
                 } catch (error) {
-                    parametriJSON= querystring.parse(parametriBody)
+                    parametriJSON = _querystring.parse(parametriBody)
+                }
+                finally {
+                    // selviamo i parametri in req["BODY"] così il chiamante li può prendere
+                    req["BODY"] = parametriJSON;
+                    _this.innerDispatch(req, res)
                 }
             })
         }
     }
-}
 
-function innerDispatch(req, res) {
-    // Lettura di metodo risorsa parametri
-    let url = _url.parse(req.url, true);
-    let metodo = req.method;
-    let risorsa = url.pathname;
-    let parametri = url.query; // json
-
-    req["GET"] = parametri;
-
-    console.log(`${this.prompt} ${metodo}: ${risorsa} ${JSON.stringify(parametri)}`)
-
-    // pagina o servizio
-    if (risorsa.startsWith("/api/")){
-        if (risorsa in this.listeners[metodo]) {
-            let callback = this.listeners[metodo][risorsa]
-            callback(req, res) // eseguo callback
-        } else {
-            // Il client si aspetta un JSON
-            // In caso di errore al posto del JSON
-            // restituiamo una stringa
-            res.writeHead(404, HEADERS.text)
-            res.write("Servizio non trovato")
-            res.end();
+    innerDispatch(req, res) {
+        // Lettura di metodo risorsa parametri
+        let url = _url.parse(req.url, true);
+        let metodo = req.method;
+        let risorsa = url.pathname;
+        let parametri = url.query; // json
+    
+        req["GET"] = parametri;
+    
+        console.log(`${this.prompt} ${metodo}: ${risorsa} ${JSON.stringify(parametri)}`)
+        if (req["BODY"]) {
+            console.log(`    ${JSON.stringify(req["BODY"])}`)    
         }
-    } else {
-        staticListeners(req, res, risorsa)
+        
+        // pagina o servizio
+        if (risorsa.startsWith("/api/")){
+            if (risorsa in this.listeners[metodo]) {
+                let callback = this.listeners[metodo][risorsa]
+                callback(req, res) // eseguo callback
+            } else {
+                // Il client si aspetta un JSON
+                // In caso di errore al posto del JSON
+                // restituiamo una stringa
+                res.writeHead(404, HEADERS.text)
+                res.write("Servizio non trovato")
+                res.end();
+            }
+        } else {
+            staticListeners(req, res, risorsa)
+        }
     }
 }
 
