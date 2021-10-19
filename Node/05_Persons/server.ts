@@ -1,7 +1,7 @@
 import * as _http from "http"
 import {HEADERS} from "./headers"
 import {Dispatcher} from "./dispatcher"
-import {persons} from "./persons"
+import persons from "./persons.json"
 let port:number = 1337
 
 let dispatcher:Dispatcher = new Dispatcher
@@ -90,4 +90,9 @@ dispatcher.addListener("DELETE", "/api/elimina", function (req, res) {
         res.write("Persona non trovata")
         res.end()
     }
+})
+
+
+dispatcher.addListener("DELETE", "/api/elimina", function (req, res) {
+
 })
