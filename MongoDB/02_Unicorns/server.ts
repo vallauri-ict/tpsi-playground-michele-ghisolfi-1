@@ -29,6 +29,26 @@ mongoClient.connect(CONNECTIONSTRING, function (err, client) {
   }
 });
 
+// query 1b
+mongoClient.connect(CONNECTIONSTRING, function (err, client) {
+  if (!err) {
+    let db = client.db(DBNAME);
+    let collection = db.collection("unicorns");
+    let rq = collection.find({ weight: { $lte: 800, $gte: 700 } }).toArray();
+    rq.then(function (data) {
+      console.log("Query 1b - ", "N record: " + data.length, data);
+    });
+    rq.catch(function (err) {
+      console.log("Errore esecuzione query " + err.message);
+    });
+    rq.finally(function () {
+      client.close()
+    })
+  } else {
+    console.log("Errore connessione al db");
+  }
+});
+
 // query 2
 mongoClient.connect(CONNECTIONSTRING, function (err, client) {
   if (!err) {
@@ -518,14 +538,18 @@ mongoClient.connect(CONNECTIONSTRING, function (err, client) {
     let db = client.db(DBNAME);
     let collection = db.collection("unicorns");
     // .replaceOne cancella tutti i campi del record trovato tranne id
-    collection.replaceOne({name:"Pluto"}, {name:"Pluto", residenza:"Fossano", loves:["apple"]}, (err, data) => {
+    collection.replaceOne(
+      { name: "Pluto" },
+      { name: "Pluto", residenza: "Fossano", loves: ["apple"] },
+      (err, data) => {
         if (!err) {
           console.log("Query 22", data);
         } else {
           console.log("Errore esecuzione query " + err.message);
         }
         client.close();
-      });
+      }
+    );
   } else {
     console.log("Errore connessione al db");
   }
