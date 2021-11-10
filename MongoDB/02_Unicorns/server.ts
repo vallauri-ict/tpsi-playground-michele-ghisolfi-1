@@ -351,32 +351,32 @@ mongoClient.connect(CONNECTIONSTRING, function (err, client) {
 });
 
 // query 15
-mongoClient.connect(CONNECTIONSTRING, function (err, client) {
-  if (!err) {
-    let db = client.db(DBNAME);
-    let collection = db.collection("unicorns");
-    collection.insertOne(
-      { name: "pippo", gender: "m", loves: ["apple", "lemon"] },
-      (err, data) => {
-        if (!err) {
-          console.log("Query 15 ", data);
-          collection.deleteMany({ "name": "pippo" }, (err, data) => {
-            if (!err) {
-              console.log("Query 15b", data);
-            } else {
-              console.log("Errore esecuzione query");
-            }
-          });
-        } else {
-          console.log("Errore esecuzione query " + err.message);
-        }
-        client.close();
-      }
-    );
-  } else {
-    console.log("Errore connessione al db");
-  }
-});
+// mongoClient.connect(CONNECTIONSTRING, function (err, client) {
+//   if (!err) {
+//     let db = client.db(DBNAME);
+//     let collection = db.collection("unicorns");
+//     collection.insertOne(
+//       { name: "pippo", gender: "m", loves: ["apple", "lemon"] },
+//       (err, data) => {
+//         if (!err) {
+//           console.log("Query 15 ", data);
+//           collection.deleteMany({ "name": "pippo" }, (err, data) => {
+//             if (!err) {
+//               console.log("Query 15b", data);
+//             } else {
+//               console.log("Errore esecuzione query");
+//             }
+//           });
+//         } else {
+//           console.log("Errore esecuzione query " + err.message);
+//         }
+//         client.close();
+//       }
+//     );
+//   } else {
+//     console.log("Errore connessione al db");
+//   }
+// });
 
 // query 16
 mongoClient.connect(CONNECTIONSTRING, function (err, client) {
@@ -386,7 +386,7 @@ mongoClient.connect(CONNECTIONSTRING, function (err, client) {
     collection.updateOne(
       { name: "pilot" },
       { $inc: { vampires: 1 } }, // se vampires non esiste crea lui il campo
-      { "upsert":true }, // se record pluto non esiste viene creato
+      { upsert: true }, // se record pluto non esiste viene creato
       (err, data) => {
         if (!err) {
           console.log("Query 16", data);
@@ -403,22 +403,130 @@ mongoClient.connect(CONNECTIONSTRING, function (err, client) {
 
 // query 17
 mongoClient.connect(CONNECTIONSTRING, function (err, client) {
-   if (!err) {
-     let db = client.db(DBNAME);
-     let collection = db.collection("unicorns");
-     collection.updateOne(
-      {"name":"Aurora"},
-      {"$addToSet":{"loves":"carrot"}, "$inc":{"weight":10}},
-       (err, data) => {
-         if (!err) {
-           console.log("Query 17", data);
-         } else {
-           console.log("Errore esecuzione query " + err.message);
-         }
-         client.close();
-       }
-     );
-   } else {
-     console.log("Errore connessione al db");
-   }
- });
+  if (!err) {
+    let db = client.db(DBNAME);
+    let collection = db.collection("unicorns");
+    collection.updateOne(
+      { name: "Aurora" },
+      { $addToSet: { loves: "carrot" }, $inc: { weight: 10 } },
+      (err, data) => {
+        if (!err) {
+          console.log("Query 17", data);
+        } else {
+          console.log("Errore esecuzione query " + err.message);
+        }
+        client.close();
+      }
+    );
+  } else {
+    console.log("Errore connessione al db");
+  }
+});
+
+// query 18
+// mongoClient.connect(CONNECTIONSTRING, function (err, client) {
+//   if (!err) {
+//     let db = client.db(DBNAME);
+//     let collection = db.collection("unicorns");
+//     collection.updateOne(
+//      {"name":"Minnie"},
+//      {"$inc":{"vampiress":1}, "$upsert":1},
+//       (err, data) => {
+//         if (!err) {
+//           console.log("Query 18", data);
+//         } else {
+//           console.log("Errore esecuzione query " + err.message);
+//         }
+//         client.close();
+//       }
+//     );
+//   } else {
+//     console.log("Errore connessione al db");
+//   }
+// });
+
+// query 19
+mongoClient.connect(CONNECTIONSTRING, function (err, client) {
+  if (!err) {
+    let db = client.db(DBNAME);
+    let collection = db.collection("unicorns");
+    collection.updateMany(
+      { vaccinated: { $exists: false } },
+      { $set: { vaccinated: true } },
+      (err, data) => {
+        if (!err) {
+          console.log("Query 19", data);
+        } else {
+          console.log("Errore esecuzione query " + err.message);
+        }
+        client.close();
+      }
+    );
+  } else {
+    console.log("Errore connessione al db");
+  }
+});
+
+// query 20
+mongoClient.connect(CONNECTIONSTRING, function (err, client) {
+  if (!err) {
+    let db = client.db(DBNAME);
+    let collection = db.collection("unicorns");
+    collection.deleteMany(
+      { loves: { $all: ["grape", "carrot"] } },
+      (err, data) => {
+        if (!err) {
+          console.log("Query 20", data);
+        } else {
+          console.log("Errore esecuzione query " + err.message);
+        }
+        client.close();
+      }
+    );
+  } else {
+    console.log("Errore connessione al db");
+  }
+});
+
+// query 21
+mongoClient.connect(CONNECTIONSTRING, function (err, client) {
+  if (!err) {
+    let db = client.db(DBNAME);
+    let collection = db.collection("unicorns");
+    // in FindOne non possiamo usare .project ma dobbiamo usare projection
+    collection
+      .find({ gender: "f" })
+      .sort({ vampires: -1 })
+      .limit(1)
+      .project({ name: 1, vampires: 1, _id: 0 })
+      .toArray((err, data) => {
+        if (!err) {
+          console.log("Query 21", data);
+        } else {
+          console.log("Errore esecuzione query " + err.message);
+        }
+        client.close();
+      });
+  } else {
+    console.log("Errore connessione al db");
+  }
+});
+
+// query 22
+mongoClient.connect(CONNECTIONSTRING, function (err, client) {
+  if (!err) {
+    let db = client.db(DBNAME);
+    let collection = db.collection("unicorns");
+    // .replaceOne cancella tutti i campi del record trovato tranne id
+    collection.replaceOne({name:"Pluto"}, {name:"Pluto", residenza:"Fossano", loves:["apple"]}, (err, data) => {
+        if (!err) {
+          console.log("Query 22", data);
+        } else {
+          console.log("Errore esecuzione query " + err.message);
+        }
+        client.close();
+      });
+  } else {
+    console.log("Errore connessione al db");
+  }
+});
