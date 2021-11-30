@@ -1,27 +1,26 @@
+import express from 'express'
 import * as _http from "http"
 import HEADERS from "./headers.json"
-import {Dispatcher} from "./dispatcher"
+
 let port:number = 1337
+let app = express()
 
-let dispatcher = new Dispatcher();
+// app richiamata ogni volta che arriva una richiesta
+let server = _http.createServer(app)
 
-let server = _http.createServer(function (req, res) {
-    dispatcher.dispatch(req, res)
-})
-server.listen(port)
-console.log("Server in ascolto sulla porta " + port)
-
-// Registrazione dei servizi
-dispatcher.addListener("POST", "/api/servizio1", function (req, res) {
-    res.writeHead(200, HEADERS.json)
-    let nome = req["BODY"].nome
-    res.write(JSON.stringify({"ris":nome, "id":req["GET"].id}))
-    res.end();
+server.listen(port, () => {
+    console.log("Server in ascolto sulla porta " + port)
 })
 
-dispatcher.addListener("GET", "/api/servizio2", function (req, res) {
-    res.writeHead(200, HEADERS.json)
-    let nome = req["GET"].nome;
-    res.write(JSON.stringify({"ris":nome}))
-    res.end();
+// elenco delle routes
+
+// ogni metodo = app.use
+// ogni risorsa = *
+app.use("*", (req, res, next) => {
+    console.log(" --->" + req.method + ": " + req.originalUrl)
+    next()
+})
+
+app.get("*", (req, res, next) => {
+    res.send("this is the response")
 })

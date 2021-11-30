@@ -4,9 +4,11 @@
   "description": "esercizio 2 con typeScript",
   "main": "server.ts",
   "dependencies": {
+    "@types/express": "^4.17.13",
     "@types/mime": "^2.0.3",
     "@types/node": "^16.9.6",
     "@types/query-string": "^6.3.0",
+    "express": "^4.17.1",
     "mime": "^2.5.2"
   },
   "devDependencies": {},
