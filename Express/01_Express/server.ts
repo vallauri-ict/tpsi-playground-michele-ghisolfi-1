@@ -96,7 +96,7 @@ app.get("/api/risorsa1", (req, res, next) => {
   }
 });
 
-app.patch("/api/risorsa1", (req, res, next) => {
+app.patch("/api/risorsa2", (req, res, next) => {
   let unicorn = req.body.nome;
   let vampires = req.body.vampires;
   if (unicorn) {
@@ -119,6 +119,26 @@ app.patch("/api/risorsa1", (req, res, next) => {
     res.status(402).send("missing parameter: UnicornName");
     req["client"].close();
   }
+});
+
+app.get("/api/risorsa3/:gender/:hair", (req, res, next) => {
+  let gender = req.params.gender;
+  let hair = req.params.hair;
+  // if sui parametri non necessaria, perchè se mancano non entra proprio nella route
+  let db = req["client"].db(DBNAME) as mongodb.Db;
+  let collection = db.collection("unicorns");
+  let rq = collection
+    .find({ $and: [{ gender: gender }, { hair: hair }] })
+    .toArray();
+  rq.then(function (data) {
+    res.send(data);
+  });
+  rq.catch(function (err) {
+    res.status(503).send("Query syntax error");
+  });
+  rq.finally(function () {
+    req["client"].close();
+  });
 });
 
 // *********************************************************

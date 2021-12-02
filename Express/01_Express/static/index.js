@@ -14,11 +14,23 @@ $(document).ready(function() {
     });
 
     $("#btnInvia2").on("click", function() {
-        let request = inviaRichiesta("patch", "/api/risorsa1", { "nome": "unico", "vampires": 3 });
+        let request = inviaRichiesta("patch", "/api/risorsa2", { "nome": "Unico", "vampires": 3 });
         request.fail(errore);
         request.done(function(data) {
             if (data.modifiedCount > 0) {
                 alert("Aggiornamento eseguito correttamente")
+            } else  {
+                alert("Nessuna corrispindenza trovata")
+            }
+        });
+    });
+
+    $("#btnInvia3").on("click", function() {
+        let request = inviaRichiesta("get", "/api/risorsa3/m/brown", {});
+        request.fail(errore);
+        request.done(function(data) {
+            if (data.length > 0) {
+                console.log(data)
             } else  {
                 alert("Nessuna corrispindenza trovata")
             }
