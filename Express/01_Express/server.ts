@@ -153,3 +153,8 @@ app.use("/", (req, res, next) => {
     res.send(paginaErrore);
   }
 });
+
+// route gestione errori
+app.use("/", (err, req, res, next) => {
+  console.log("Errore codoce server ", err.message);
+})
