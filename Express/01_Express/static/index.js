@@ -1,18 +1,27 @@
 $(document).ready(function() {
 
     $("#btnInvia").on("click", function() {
-        let request = inviaRichiesta("post", "/api/servizio1?id=5", { "nome": "pippo" });
+        let request = inviaRichiesta("get", "/api/risorsa1", { "nome": "Aurora" });
         request.fail(errore);
         request.done(function(data) {
-            alert(JSON.stringify(data));
+            if (data.length > 0) {
+                alert(JSON.stringify(data));
+            } else {
+                alert("Corrispondenza non trovata")
+            }
+            
         });
     });
 
     $("#btnInvia2").on("click", function() {
-        let request = inviaRichiesta("get", "/api/servizio2", { "nome": "pluto" });
+        let request = inviaRichiesta("patch", "/api/risorsa1", { "nome": "unico", "vampires": 3 });
         request.fail(errore);
         request.done(function(data) {
-            alert(JSON.stringify(data));
+            if (data.modifiedCount > 0) {
+                alert("Aggiornamento eseguito correttamente")
+            } else  {
+                alert("Nessuna corrispindenza trovata")
+            }
         });
     });
 });
