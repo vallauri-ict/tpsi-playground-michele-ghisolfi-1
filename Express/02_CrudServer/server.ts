@@ -63,6 +63,7 @@ app.use("/", (req, res, next) => {
 // *********************************************************
 // elenco delle routes di risposta al client
 // *********************************************************
+// middleware apertura connessione
 app.use("/", (req, res, next) => {
   mongoClient.connect(CONNECTIONSTRING, (err, client) => {
     if (err) {
@@ -72,6 +73,86 @@ app.use("/", (req, res, next) => {
       req["client"] = client;
       next();
     }
+  });
+});
+
+// lettura collezioni presenti nel db
+app.get("/api/getCollections", (req, res, next) => {
+  let db = req["client"].db(DBNAME) as mongodb.Db;
+  let collections = db.listCollections();
+  let rq = collections.toArray();
+  rq.then((data) => {
+    res.send(data);
+  });
+  rq.catch((err) => {
+    res.status(503).send("Query syntax error");
+  });
+  rq.finally(() => {
+    req["client"].close();
+  });
+});
+
+// middleware intercettazione parametri
+let currentCollection = "";
+let id = "";
+app.use("/api/:collection", (req, res, next) => {
+  currentCollection = req.params.collection;
+  next();
+});
+app.use("/api/:collection/:id", (req, res, next) => {
+  currentCollection = req.params.collection;
+  id = req.params.id;
+  next();
+});
+
+// listener specifici:
+// listener GET
+// listener GET. Ascolto su qualsiasi richiesta GET
+app.get("/api/*", (req, res, next) => {
+  // if sui parametri non necessaria, perchè se mancano non entra proprio nella route
+  let db = req["client"].db(DBNAME) as mongodb.Db;
+  let collection = db.collection(currentCollection);
+  if (!id) {
+    let rq = collection.find().project({ _id: 1, name: 1 }).toArray();
+
+    rq.then(function (data) {
+      res.send(data);
+    });
+    rq.catch(function (err) {
+      res.status(503).send("Query syntax error");
+    });
+    rq.finally(function () {
+      req["client"].close();
+    });
+  } else {
+    let oid = new mongodb.ObjectId(id);
+    let rq = collection.findOne({ _id: oid });
+    rq.then(function (data) {
+      res.send(data);
+    });
+    rq.catch(function (err) {
+      res.status(503).send("Query syntax error");
+    });
+    rq.finally(function () {
+      req["client"].close();
+    });
+  }
+});
+
+app.delete("/api/*", (req, res, next) => {
+  let db = req["client"].db(DBNAME) as mongodb.Db;
+  let collection = db.collection(currentCollection);
+  let _id = new mongodb.ObjectId();
+  let rq = collection.deleteOne({"_id":_id});
+
+  rq.then(function (data) {
+    res.send(data);
+  });
+  rq.catch(function (err) {
+    res.status(503).send("Query syntax error");
+  });
+  rq.finally(function () {
+    req["client"].close();
   });
 });
 
@@ -121,25 +202,7 @@ app.patch("/api/risorsa2", (req, res, next) => {
   }
 });
 
-app.get("/api/risorsa3/:gender/:hair", (req, res, next) => {
-  let gender = req.params.gender;
-  let hair = req.params.hair;
-  // if sui parametri non necessaria, perchè se mancano non entra proprio nella route
-  let db = req["client"].db(DBNAME) as mongodb.Db;
-  let collection = db.collection("unicorns");
-  let rq = collection
-    .find({ $and: [{ gender: gender }, { hair: hair }] })
-    .toArray();
-  rq.then(function (data) {
-    res.send(data);
-  });
-  rq.catch(function (err) {
-    res.status(503).send("Query syntax error");
-  });
-  rq.finally(function () {
-    req["client"].close();
-  });
-});
+// middleware
 
 // *********************************************************
 // default route(risorsa non trovata) e route gestione errori
@@ -156,5 +219,5 @@ app.use("/", (req, res, next) => {
 
 // route gestione errori
 app.use("/", (err, req, res, next) => {
-  console.log("Errore codoce server ", err.message);
-})
+  console.log("***** ERRORE CODICE SERVER ", err.message, " *****");
+});
